@@ -9,7 +9,10 @@ using Nethereum.ABI.FunctionEncoding.Attributes;
 using Nethereum.BlockchainProcessing.BlockStorage.Entities;
 using Nethereum.Contracts.QueryHandlers.MultiCall;
 using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Hex.HexTypes;
 using Nethereum.RPC.Eth.DTOs;
+using Nethereum.Util;
+using Nethereum.Web3;
 using Newtonsoft.Json;
 using Scripts.EVM.Token;
 using UnityEngine;
@@ -32,14 +35,26 @@ public class EvmCalls : MonoBehaviour
 
     #region Contract Send
 
-    private string methodSend = "addTotal";
-    private int increaseAmountSend = 1;
+    private string methodJoinGame = "joinGame";
+    private string methodClaimBingo = "claimBingo";
+    private string methodGetCurrentGameId = "getCurrentGameId";
+    private string methodGetAlreadyJoinedId = "getAlreadyJoined";
+    private string methodGetPricePerCard = "getPricePerCard";
+    private string methodGetPlayersCount = "getPlayersCount";
+    private string methodGetPlayerNumbers = "getPlayerNumbers";
+    
+    
+    private int[] numbersToBingo = new int[]
+    {
+        1, 2, 3, 4, 5, 16, 17, 18, 19, 20, 31, 32, 33, 34, 35, 46, 47, 48, 49, 50, 69, 70, 71, 72
+    };
+
 
     #endregion
 
     #region Contract Call
 
-    private string methodCall = "myTotal";
+    private string methodCall = "getPricePerCard";
 
     #endregion
 
@@ -114,38 +129,157 @@ public class EvmCalls : MonoBehaviour
     /// <summary>
     /// Calls values from a contract
     /// </summary>
-    public async void ContractCall()
+    public async void ContractCall(string methodToCall, object[] args)
     {
-        object[] args =
-        {
-            await Web3Accessor.Web3.Signer.GetAddress()
-        };
-        var response = await Evm.ContractCall(Web3Accessor.Web3, methodCall, ABI.ArrayTotal, Contracts.ArrayTotal, args);
+        Debug.Log("Contract Call called");
+
+        // object[] args =
+        // {
+        //     // await Web3Accessor.Web3.Signer.GetAddress()
+        // };
+
+        var response =
+            await Evm.ContractCall(Web3Accessor.Web3, methodToCall, ABI.BingoABI, Contracts.BingoContract, args);
         Debug.Log(response);
         var output = SampleOutputUtil.BuildOutputValue(response);
-        SampleOutputUtil.PrintResult(output, nameof(Evm), nameof(Evm.ContractCall));
+        SampleOutputUtil.PrintResult(output, nameof(Evm), methodToCall);
     }
 
+    public async void TESTAR()
+    {
+        GetAlreadyJoined();
+        
+        GetPricePerCard();
+        
+        GetPlayersCount();
+        
+        GetPlayerNumbers();
+        
+        GetLastFiveDrawnNumbers();
+        
+        GetGameState();
+        
+        GetCurrentGameId();
+        
+        Games();
+    }
+    
+    // Get true when the player already joined the Current Bingo
+    public async void GetAlreadyJoined()
+    {
+        object[] args = {};
+        ContractCall(methodGetAlreadyJoinedId, args);
+    }
+    // Get the Price per Card for play the Current Bing
+    public async void GetPricePerCard()
+    {
+        object[] args = {};
+        ContractCall(methodGetPricePerCard, args);
+    }
+    
+    // Get the Numbers of Players of Current Bingo
+    public async void GetPlayersCount()
+    {
+        object[] args = {};
+        ContractCall(methodGetPlayersCount, args);
+    }
+    
+    // Get The numbers of the Card Player of Current Bingo
+    public async void GetPlayerNumbers()
+    {
+        object[] args = {};
+        ContractCall(methodGetPlayerNumbers, args);
+    }
+    
+    // Get the last five drawn numbers
+    public async void GetLastFiveDrawnNumbers()
+    {
+        object[] args = {};
+        ContractCall("getLastFiveDrawnNumbers", args);
+    }
+    
+    // Get the Current Bingo actualGame State
+    public async void GetGameState()
+    {
+        object[] args = {};
+        ContractCall("getGameState", args);
+    }
+    
+    // Get the Current Bingo GameId 
+    public async void GetCurrentGameId()
+    {
+        object[] args = {};
+        ContractCall("getCurrentGameId", args);
+    }
+    
+    // Get the game from gameId of the 'Games' mappings
+    public async void Games()
+    {
+        object[] argsGetCurrentGameId = { };
+
+        var gameId =
+            await Evm.ContractCall(Web3Accessor.Web3, methodGetCurrentGameId, ABI.BingoABI, Contracts.BingoContract, argsGetCurrentGameId);
+        Debug.Log(gameId);
+        var output = SampleOutputUtil.BuildOutputValue(gameId);
+        SampleOutputUtil.PrintResult(output, nameof(Evm), methodGetCurrentGameId);
+        
+        object[] args = {gameId};
+        ContractCall("games", args);
+    }
+    
     /// <summary>
-    /// Sends values to a contract
+    ///  Joing the Bingo Game And send The Amount to enter the game "0.01"
     /// </summary>
-    public async void ContractSend()
+    public async void JoinGame()
     {
         object[] args =
         {
-            increaseAmountSend
+            numbersToBingo
         };
-        var response = await Evm.ContractSend(Web3Accessor.Web3, methodSend, ABI.ArrayTotal, Contracts.ArrayTotal, args);
-        var output = SampleOutputUtil.BuildOutputValue(response);
-        SampleOutputUtil.PrintResult(output, nameof(Evm), nameof(Evm.ContractSend));
-    }
+        
+        // Valor em Ether
+        decimal valorEmEther = 0.01m;
+        // Convertendo o valor para Wei
+        BigInteger valorEmWei = UnitConversion.Convert.ToWei(valorEmEther, UnitConversion.EthUnit.Ether);
+        // Criando a variável HexBigInteger
+        HexBigInteger valorHexBigInteger = new HexBigInteger(valorEmWei);
 
+        var response = await Evm.ContractSend(Web3Accessor.Web3, methodJoinGame, ABI.BingoABI, Contracts.BingoContract, args, valorHexBigInteger);
+        var output = SampleOutputUtil.BuildOutputValue(response);
+        SampleOutputUtil.PrintResult(output, nameof(Evm), methodJoinGame);
+    }
+    
+    /// <summary>
+    /// Claim for winner 
+    /// </summary>
+    public async void GetClaim()
+    {
+        object[] args =
+        {
+        };
+        
+        var response = await Evm.ContractSend(Web3Accessor.Web3, methodClaimBingo, ABI.BingoABI, Contracts.BingoContract, args);
+        var output = SampleOutputUtil.BuildOutputValue(response);
+        SampleOutputUtil.PrintResult(output, nameof(Evm), methodClaimBingo);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /// <summary>
     /// Gets array values from a contract
     /// </summary>
     public async void GetArray()
     {
-        var response = await Evm.GetArray<string>(Web3Accessor.Web3, Contracts.ArrayTotal, ABI.ArrayTotal, methodArrayGet);
+        var response = await Evm.GetArray<string>(Web3Accessor.Web3, Contracts.BingoContract, ABI.BingoABI, methodArrayGet);
         var responseString = string.Join(",\n", response.Select((list, i) => $"#{i} {string.Join((string)", ", (IEnumerable<string>)list)}"));
         SampleOutputUtil.PrintResult(responseString, nameof(Evm), nameof(Evm.GetArray));
     }
@@ -155,19 +289,11 @@ public class EvmCalls : MonoBehaviour
     /// </summary>
     public async void SendArray()
     {
-        var response = await Evm.SendArray(Web3Accessor.Web3, methodArraySend, ABI.ArrayTotal, Contracts.ArrayTotal, stringArraySend);
+        var response = await Evm.SendArray(Web3Accessor.Web3, methodArraySend, ABI.BingoABI, Contracts.BingoContract, stringArraySend);
         var output = SampleOutputUtil.BuildOutputValue(response);
         SampleOutputUtil.PrintResult(output, nameof(Evm), nameof(Evm.SendArray));
     }
 
-    /// <summary>
-    /// Gets the current block number
-    /// </summary>
-    public async void GetBlockNumber()
-    {
-        var blockNumber = await Evm.GetBlockNumber(Web3Accessor.Web3);
-        SampleOutputUtil.PrintResult(blockNumber.ToString(), nameof(Evm), nameof(Evm.GetBlockNumber));
-    }
 
     /// <summary>
     /// Gets the gas limit for a specific function
@@ -176,9 +302,9 @@ public class EvmCalls : MonoBehaviour
     {
         object[] args =
         {
-            increaseAmountSend
+            numbersToBingo
         };
-        var gasLimit = await Evm.GetGasLimit(Web3Accessor.Web3, ABI.ArrayTotal, Contracts.ArrayTotal, methodSend, args);
+        var gasLimit = await Evm.GetGasLimit(Web3Accessor.Web3, ABI.BingoABI, Contracts.BingoContract, methodJoinGame, args);
         SampleOutputUtil.PrintResult(gasLimit.ToString(), nameof(Evm), nameof(Evm.GetGasLimit));
     }
 
@@ -270,7 +396,7 @@ public class EvmCalls : MonoBehaviour
         {
             amount
         };
-        var contract = Web3Accessor.Web3.ContractBuilder.Build(ABI.ArrayTotal, eventContract);
+        var contract = Web3Accessor.Web3.ContractBuilder.Build(ABI.BingoABI, eventContract);
         var data = await contract.SendWithReceipt("addTotal", args);
         // Quick pause to deal with chain congestion
         await new WaitForSeconds(2);

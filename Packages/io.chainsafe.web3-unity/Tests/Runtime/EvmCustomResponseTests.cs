@@ -56,7 +56,7 @@ public class EvmCustomResponseTests
         {
             IncreaseAmount
         };
-        var sendContract = Evm.ContractSend(web3, ContractSendMethod, ABI.ArrayTotal, Contracts.ArrayTotal, args);
+        var sendContract = Evm.ContractSend(web3, ContractSendMethod, ABI.BingoABI, Contracts.BingoContract, args);
         yield return new WaitUntil(() => sendContract.IsCompleted);
         if (sendContract.Exception != null) throw sendContract.Exception;
         Assert.IsTrue(sendContract.IsCompletedSuccessfully);
@@ -67,7 +67,7 @@ public class EvmCustomResponseTests
     public IEnumerator TestSendArray()
     {
         yield return BuildWeb3WithTestResponse("0x3446b949c3d214fba7e61c9cf127eac6cd0b2983564cf76be618099879b6f1e1");
-        var sendArray = Evm.SendArray(web3, SendArrayMethod, ABI.ArrayTotal, Contracts.ArrayTotal, ArrayToSend.ToArray());
+        var sendArray = Evm.SendArray(web3, SendArrayMethod, ABI.BingoABI, Contracts.BingoContract, ArrayToSend.ToArray());
         yield return new WaitUntil(() => sendArray.IsCompleted);
         if (sendArray.Exception != null) throw sendArray.Exception;
         Assert.IsTrue(sendArray.IsCompletedSuccessfully);

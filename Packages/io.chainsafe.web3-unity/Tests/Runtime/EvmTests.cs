@@ -50,7 +50,7 @@ public class EvmTests : SampleTestsBase
     {
         var address = web3.Signer.GetAddress().Result;
         object[] args = { address };
-        var callContract = Evm.ContractCall(web3, ContractCallMethod, ABI.ArrayTotal, Contracts.ArrayTotal, args);
+        var callContract = Evm.ContractCall(web3, ContractCallMethod, ABI.BingoABI, Contracts.BingoContract, args);
         yield return new WaitUntil(() => callContract.IsCompleted);
         if (callContract.Exception != null) throw callContract.Exception;
         Assert.IsTrue(callContract.IsCompletedSuccessfully);
@@ -60,7 +60,7 @@ public class EvmTests : SampleTestsBase
     [UnityTest]
     public IEnumerator TestGetArray()
     {
-        var getArray = Evm.GetArray<string>(web3, Contracts.ArrayTotal, ABI.ArrayTotal, GetArrayMethod);
+        var getArray = Evm.GetArray<string>(web3, Contracts.BingoContract, ABI.BingoABI, GetArrayMethod);
         yield return new WaitUntil(() => getArray.IsCompleted);
         // Convert toLower to make comparing easier
         var result = getArray.Result.ConvertAll(a => a.ConvertAll(b => b.ToLower()));
@@ -87,7 +87,7 @@ public class EvmTests : SampleTestsBase
         {
            IncreaseAmount
         };
-        var getGasLimit = Evm.GetGasLimit(web3, ABI.ArrayTotal, Contracts.ArrayTotal, ContractSendMethod, args);
+        var getGasLimit = Evm.GetGasLimit(web3, ABI.BingoABI, Contracts.BingoContract, ContractSendMethod, args);
         yield return new WaitUntil(() => getGasLimit.IsCompleted);
         if (getGasLimit.Exception != null) throw getGasLimit.Exception;
         // Just assert successful completion because result is always changing
