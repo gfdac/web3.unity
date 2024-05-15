@@ -137,7 +137,12 @@ public class EvmCalls : MonoBehaviour
         // {
         //     // await Web3Accessor.Web3.Signer.GetAddress()
         // };
-
+       
+        // var abi = "%YOUR_ABI_IN_JSON_FORMAT%";
+        // var address = "0x1d6f31b71e12a1a584ca20853495161c48ba491f";
+        // var contract = web3.ContractBuilder.Build(abi, address);
+        
+        
         var response =
             await Evm.ContractCall(Web3Accessor.Web3, methodToCall, ABI.BingoABI, Contracts.BingoContract, args);
         Debug.Log(response);
